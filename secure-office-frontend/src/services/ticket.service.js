@@ -1,41 +1,30 @@
-import axios from "axios";
+import api from "./api";
 
-// Backend'de TicketController @RequestMapping("/api/v1/tickets") olarak ayarlıydı.
-const API_URL = "http://localhost:8080/api/v1/tickets";
+const TICKET_URL = "/tickets";
 
-const authHeader = () => {
-    const token = localStorage.getItem("token");
-    if (token) {
-        return { Authorization: "Bearer " + token };
-    } else {
-        return {};
-    }
-};
-
-// 1. Tüm Ticketları Getir (Eski sayfa için)
+// 1. Tüm Ticketları Getir
 const getAllTickets = () => {
-    return axios.get(API_URL, { headers: authHeader() });
+    return api.get(TICKET_URL);
 };
 
-// 2. YENİ: Sadece bir projeye ait ticketları getir
+// 2. Sadece bir projeye ait ticketları getir
 const getTicketsByProject = (projectId) => {
-    // Backend'de bu uç: /api/v1/tickets/project/{projectId}
-    return axios.get(API_URL + "/project/" + projectId, { headers: authHeader() });
+    return api.get(TICKET_URL + "/project/" + projectId);
 };
 
 // 3. Ticket Oluştur
 const createTicket = (ticketData) => {
-    return axios.post(API_URL, ticketData, { headers: authHeader() });
+    return api.post(TICKET_URL, ticketData);
 };
 
-// 4. Statü Güncelle (Sürükle Bırak için)
+// 4. Statü Güncelle
 const updateTicketStatus = (id, status) => {
-    return axios.patch(API_URL + "/" + id + "/status", { status }, { headers: authHeader() });
+    return api.patch(TICKET_URL + "/" + id + "/status", { status });
 };
 
 // 5. Sil
 const deleteTicket = (id) => {
-    return axios.delete(API_URL + "/" + id, { headers: authHeader() });
+    return api.delete(TICKET_URL + "/" + id);
 };
 
 const TicketService = {

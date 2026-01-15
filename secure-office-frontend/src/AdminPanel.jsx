@@ -1,65 +1,46 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { toast } from 'react-toastify';
-import './App.css';
 import { useNavigate, useLocation } from "react-router-dom";
+import UserService from "./services/user.service"; // Yeni servisimiz
+import './AdminPanel.css'; // Yeni CSS dosyamız
+import useTheme from "./hooks/useTheme";
 
 function AdminPanel() {
     const [users, setUsers] = useState([]);
-    const [currentUser, setCurrentUser] = useState(null); // <-- BEN KİMİM?
+    const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(true);
+
     const navigate = useNavigate();
     const location = useLocation();
 
-    const [darkMode, setDarkMode] = useState(() => {
-        return localStorage.getItem("theme") === "dark";
-    });
+        const [darkMode, setDarkMode] = useTheme();
 
+    // Veri Çekme
     useEffect(() => {
-        if (darkMode) {
-            document.body.classList.add("dark-mode");
-            localStorage.setItem("theme", "dark");
-        } else {
-            document.body.classList.remove("dark-mode");
-            localStorage.setItem("theme", "light");
-        }
-    }, [darkMode]);
+        const token = localStorage.getItem("token");
+        if (!token) { navigate("/"); return; }
 
-    const token = localStorage.getItem("token");
-    const API_BASE_URL = "http://localhost:8080/api/v1";
-
-    useEffect(() => {
-        if (!token) {
-            navigate("/");
-            return;
-        }
-        fetchMe(); // <-- Önce ben kimim onu öğrenelim
-        fetchUsers();
+        loadData();
     }, []);
 
-    // Şu an giriş yapmış olan adminin bilgilerini çek
-    const fetchMe = async () => {
+    const loadData = async () => {
         try {
-            const res = await axios.get(`${API_BASE_URL}/auth/me`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setCurrentUser(res.data);
-        } catch (error) {
-            console.error("Kimlik bilgisi alınamadı", error);
-        }
-    };
+            // Promise.all ile iki isteği paralel atıyoruz (Daha hızlı)
+            const [meRes, usersRes] = await Promise.all([
+                UserService.getMe(),
+                UserService.getAllUsers()
+            ]);
 
-    const fetchUsers = async () => {
-        try {
-            const res = await axios.get(`${API_BASE_URL}/users`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setUsers(res.data);
+            setCurrentUser(meRes.data);
+            setUsers(usersRes.data);
             setLoading(false);
+
         } catch (error) {
-            console.error("Kullanıcılar çekilemedi", error);
-            toast.error("Yetkisiz Giriş!");
-            navigate("/projects");
+            console.error("Veri çekme hatası", error);
+            toast.error("Veriler alınamadı veya yetkisiz giriş.");
+            setLoading(false);
+            // Hata durumunda (eğer api.js redirect yapmazsa) projeler sayfasına atabiliriz
+            // navigate("/projects");
         }
     };
 
@@ -67,125 +48,97 @@ function AdminPanel() {
         if (!window.confirm("Bu kullanıcıyı silmek istediğine emin misin?")) return;
 
         try {
-            await axios.delete(`${API_BASE_URL}/users/${userId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await UserService.deleteUser(userId);
             toast.success("Kullanıcı silindi. 👋");
             setUsers(users.filter(u => u.id !== userId));
         } catch (error) {
-            // Backend'den gelen özel hata mesajını gösterelim (örn: "Kendi hesabınızı silemezsiniz")
-            if (error.response && error.response.data) {
-                toast.error(error.response.data);
-            } else {
-                toast.error("Silme işlemi başarısız!");
-            }
+            const msg = error.response?.data || "Silme işlemi başarısız!";
+            toast.error(msg);
         }
     };
 
-    if (loading) return <div style={{textAlign:'center', marginTop:'50px', color:'var(--text-main)'}}>Yükleniyor...</div>;
+    // Geri Dönüş Mantığı
+    const handleGoBack = () => {
+        if (location.state && location.state.projectId) {
+            navigate("/project/" + location.state.projectId + "/tickets");
+        } else {
+            navigate("/projects");
+        }
+    };
+
+    if (loading) return <div style={{textAlign:'center', marginTop:'50px'}}>Yükleniyor...</div>;
 
     return (
-        <div style={{ minHeight: '100vh', background: 'var(--bg-main)', color: 'var(--text-main)', fontFamily: 'Arial, sans-serif', padding: '20px', transition: 'background 0.3s' }}>
+        <div className="admin-container">
+            <div className="admin-wrapper">
 
-            <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+                {/* HEADER */}
+                <div className="admin-header">
+                    <h2 className="admin-title">👑 Admin Yönetim Paneli</h2>
 
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'30px', borderBottom:'1px solid var(--border-color)', paddingBottom:'20px' }}>
-                    <h2 style={{margin:0}}>👑 Admin Yönetim Paneli</h2>
-
-                    <div style={{display:'flex', gap:'15px'}}>
+                    <div className="header-actions">
                         <button
                             onClick={() => setDarkMode(!darkMode)}
-                            style={{
-                                background: 'transparent',
-                                border: '1px solid var(--border-color)',
-                                borderRadius: '50%',
-                                width:'32px', height:'32px',
-                                cursor:'pointer', fontSize:'16px',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center'
-                            }}
+                            className="btn-icon"
                             title="Gece/Gündüz Modu"
                         >
                             {darkMode ? '☀️' : '🌙'}
                         </button>
 
-                        <button
-                            onClick={() => {
-                                // EĞER cebinde bir proje ID'si ile geldiyse oraya dön
-                                if (location.state && location.state.projectId) {
-                                    navigate("/project/" + location.state.projectId + "/tickets");
-                                }
-                                // Yoksa ana proje listesine dön
-                                else {
-                                    navigate("/projects");
-                                }
-                            }}
-                            style={{
-                                padding:'8px 16px',
-                                background:'var(--bg-card)',
-                                border:'1px solid var(--border-color)',
-                                color:'var(--text-main)',
-                                borderRadius:'4px',
-                                cursor:'pointer'
-                            }}
-                        >
+                        <button onClick={handleGoBack} className="btn-back">
                             ← Görevlere Dön
                         </button>
                     </div>
                 </div>
 
-                <div style={{ background: 'var(--bg-card)', borderRadius: '8px', padding: '20px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                {/* TABLO */}
+                <div className="table-card">
+                    <table className="user-table">
                         <thead>
-                        <tr style={{ borderBottom: '2px solid var(--border-color)', color: 'var(--text-secondary)' }}>
-                            <th style={{ padding: '15px 10px' }}>ID</th>
-                            <th style={{ padding: '15px 10px' }}>İsim</th>
-                            <th style={{ padding: '15px 10px' }}>E-Posta</th>
-                            <th style={{ padding: '15px 10px' }}>Roller</th>
-                            <th style={{ padding: '15px 10px', textAlign:'right' }}>İşlem</th>
+                        <tr>
+                            <th>ID</th>
+                            <th>İsim</th>
+                            <th>E-Posta</th>
+                            <th>Roller</th>
+                            <th style={{textAlign:'right'}}>İşlem</th>
                         </tr>
                         </thead>
                         <tbody>
                         {users.map(user => {
-                            // KONTROL: Bu satırdaki kullanıcı BEN miyim?
                             const isMe = currentUser && currentUser.id === user.id;
 
                             return (
-                                <tr key={user.id} style={{ borderBottom: '1px solid var(--border-color)', background: isMe ? 'rgba(0, 82, 204, 0.05)' : 'transparent' }}>
-                                    <td style={{ padding: '15px 10px', color:'var(--text-secondary)' }}>#{user.id}</td>
-                                    <td style={{ padding: '15px 10px', fontWeight: isMe ? 'bold' : 'normal' }}>
+                                <tr key={user.id} className={isMe ? "row-me" : ""}>
+                                    <td style={{color: 'var(--text-secondary)'}}>#{user.id}</td>
+
+                                    <td className={isMe ? "text-me" : ""}>
                                         {user.firstName} {user.lastName}
-                                        {isMe && <span style={{marginLeft:'5px', fontSize:'10px', color:'var(--text-secondary)'}}>(Sen)</span>}
+                                        {isMe && <span className="badge-me">(Sen)</span>}
                                     </td>
-                                    <td style={{ padding: '15px 10px' }}>{user.email}</td>
-                                    <td style={{ padding: '15px 10px' }}>
+
+                                    <td>{user.email}</td>
+
+                                    <td>
                                         {user.roles.map(r => (
-                                            <span key={r.id} style={{
-                                                background: r.name === 'ROLE_ADMIN' ? '#fab387' : '#89b4fa',
-                                                color: '#1e1e2e',
-                                                padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold', marginRight:'5px'
-                                            }}>
+                                            <span
+                                                key={r.id}
+                                                className={`role-badge ${r.name === 'ROLE_ADMIN' ? 'role-admin' : 'role-user'}`}
+                                            >
                                                     {r.name === 'ROLE_ADMIN' ? 'ADMIN' : 'USER'}
                                                 </span>
                                         ))}
                                     </td>
-                                    <td style={{ padding: '15px 10px', textAlign:'right' }}>
-                                        {/* EĞER BU BEN DEĞİLSEM SİL BUTONUNU GÖSTER */}
-                                        {!isMe && (
+
+                                    <td style={{textAlign:'right'}}>
+                                        {!isMe ? (
                                             <button
                                                 onClick={() => handleDeleteUser(user.id)}
-                                                style={{
-                                                    background: 'transparent', color: '#ff5252', border: '1px solid #ff5252',
-                                                    padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight:'bold',
-                                                    transition: '0.2s'
-                                                }}
-                                                onMouseOver={(e) => { e.target.style.background = '#ff5252'; e.target.style.color = 'white'; }}
-                                                onMouseOut={(e) => { e.target.style.background = 'transparent'; e.target.style.color = '#ff5252'; }}
+                                                className="btn-delete-user"
                                             >
                                                 Sil
                                             </button>
-                                        )}
-                                        {isMe && (
-                                            <span style={{fontSize:'20px'}} title="Kendini silemezsin">🛡️</span>
+                                        ) : (
+                                            <span className="icon-shield" title="Kendini silemezsin">🛡️</span>
                                         )}
                                     </td>
                                 </tr>
@@ -194,6 +147,7 @@ function AdminPanel() {
                         </tbody>
                     </table>
                 </div>
+
             </div>
         </div>
     );

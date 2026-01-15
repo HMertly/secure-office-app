@@ -8,7 +8,7 @@ import org.springframework.web.server.ResponseStatusException; // Hata fırlatma
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/projects")
+@RequestMapping("/api/v1/projects")
 @CrossOrigin(origins = "http://localhost:5173")
 public class ProjectController {
 

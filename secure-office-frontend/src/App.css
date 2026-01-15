@@ -1,117 +1,82 @@
-/* --- GECE / GÜNDÜZ MODU AYARLARI --- */
+/* src/App.css */
 
-/* Varsayılan (Aydınlık) Tema */
+/* --- TEMA RENKLERİ VE GEÇİŞLER --- */
 :root {
-  --bg-main: #f4f5f7;       /* Sayfa Arka Planı */
-  --bg-card: #ffffff;       /* Kutu/Header Arka Planı */
-  --text-main: #172b4d;     /* Ana Yazı Rengi */
-  --text-secondary: #5e6c84; /* İkincil Yazı Rengi */
-  --border-color: #dfe1e6;  /* Çerçeve Rengi */
-  --kanban-bg: #ebecf0;     /* Kolon Arka Planı */
-  --hover-bg: #f0f0f0;      /* Hover Rengi */
-  --drag-bg: #deebff;       /* Sürüklenirken Kart Rengi */
-  --input-bg: #ffffff;      /* Input Arka Planı */
-}
-/* --- SMOOTH THEME TRANSITION (Yumuşak Geçiş Efekti) --- */
-
-*, *::before, *::after {
-  /* Hangi özelliklerin animasyonlu değişeceğini belirle */
-  transition-property: background-color, background, color, border-color, box-shadow, fill, stroke;
-
-  transition-duration: 0.4s;
-
-  /* Geçişin hız eğrisi: Yavaş başla, hızlan, yavaş bitir */
-  transition-timing-function: ease-in-out;
+  --bg-main: #f4f5f7;
+  --bg-card: #ffffff;
+  --text-main: #172b4d;
+  --text-secondary: #5e6c84;
+  --border-color: #dfe1e6;
+  --kanban-bg: #ebecf0;
+  --hover-bg: #f0f0f0;
+  --drag-bg: #deebff;
+  --input-bg: #ffffff;
 }
 
-[data-rbd-draggable-context-id] {
-  transition-property: background-color, background, color, border-color, box-shadow !important;
-}
-
-/* Karanlık (Dark) Tema */
 body.dark-mode {
-  --bg-main: #121212;       /* Koyu Gri Arka Plan */
-  --bg-card: #1e1e1e;       /* Daha Açık Gri Kutu */
-  --text-main: #e0e0e0;     /* Açık Renk Yazı */
-  --text-secondary: #b0b3b8; /* Gri Yazı */
-  --border-color: #333333;  /* Koyu Çerçeve */
-  --kanban-bg: #2c2c2c;     /* Koyu Kolon */
-  --hover-bg: #333333;      /* Koyu Hover */
-  --drag-bg: #263b5e;       /* Sürüklenirken Koyu Mavi */
-  --input-bg: #2c2c2c;      /* Koyu Input */
+  --bg-main: #121212;
+  --bg-card: #1e1e1e;
+  --text-main: #e0e0e0;
+  --text-secondary: #b0b3b8;
+  --border-color: #333333;
+  --kanban-bg: #2c2c2c;
+  --hover-bg: #333333;
+  --drag-bg: #263b5e;
+  --input-bg: #2c2c2c;
 }
 
-/* Genel Body Ayarı */
 body {
   background-color: var(--bg-main);
   color: var(--text-main);
-  transition: background-color 0.3s, color 0.3s; /* Renk geçişi yumuşak olsun */
+  transition: background-color 0.3s, color 0.3s;
 }
 
-/* Input ve Select elemanları da moda uyum sağlasın */
-input, select {
-  background-color: var(--input-bg) !important;
-  color: var(--text-main) !important;
-  border-color: var(--border-color) !important;
-}
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  backdrop-filter: blur(3px);
-}
+/* --- ORTAK BİLEŞENLER (GLOBAL) --- */
 
-/* Modal Kutusu */
-.modal-content {
-  background: var(--bg-card);
-  color: var(--text-main);
-  padding: 25px;
-  border-radius: 8px;
-  width: 400px;
-  max-width: 90%;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+/* Genel Input ve Select Stili */
+.form-input, .form-select {
+  padding: 12px;
+  border-radius: 6px;
   border: 1px solid var(--border-color);
-  animation: modalFadeIn 0.3s ease;
-}
-
-/* Modal Form Elemanları */
-.modal-content label {
-  display: block;
-  margin-top: 15px;
-  font-size: 14px;
-  font-weight: bold;
-  color: var(--text-secondary);
-}
-
-.modal-content input,
-.modal-content select,
-.modal-content textarea {
-  width: 100%;
-  padding: 10px;
-  margin-top: 5px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  box-sizing: border-box;
-  font-family: inherit;
+  outline: none;
   background-color: var(--input-bg);
   color: var(--text-main);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-size: 0.9rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  width: 100%; /* Varsayılan olarak tam genişlik */
+  box-sizing: border-box;
 }
 
-.modal-actions {
-  margin-top: 25px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+.form-input:focus, .form-select:focus {
+  border-color: #0052cc;
+  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
 }
 
-@keyframes modalFadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+/* Textarea Boyutlandırmasını Kapat */
+textarea.form-input {
+  resize: none !important;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+/* Genel Mavi Buton (Primary) */
+.btn-primary {
+  padding: 12px 24px;
+  background-color: #0052cc;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s, transform 0.1s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-primary:hover {
+  background-color: #0043a5;
+  transform: translateY(-1px);
 }

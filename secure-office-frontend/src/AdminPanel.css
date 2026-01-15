@@ -1,0 +1,125 @@
+/* src/AdminPanel.css */
+
+/* --- GENEL DÜZEN --- */
+.admin-container {
+    min-height: 100vh;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: 'Inter', system-ui, sans-serif;
+    padding: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.admin-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* --- HEADER --- */
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 20px;
+}
+
+.admin-title { margin: 0; font-size: 1.5rem; }
+
+.header-actions { display: flex; gap: 15px; }
+
+/* Butonlar (ProjectBoard.css ile benzer sınıflar kullanılabilir ama bağımsız olsun diye tekrar yazdık) */
+.btn-back {
+    padding: 8px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+.btn-back:hover { background-color: var(--hover-bg); }
+
+/* --- TABLO KUTUSU --- */
+.table-card {
+    background: var(--bg-card);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    overflow-x: auto; /* Mobilde taşarsa kaydır */
+}
+
+/* --- TABLO STİLLERİ --- */
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.user-table th {
+    padding: 15px 10px;
+    border-bottom: 2px solid var(--border-color);
+    color: var(--text-secondary);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+.user-table td {
+    padding: 15px 10px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+}
+
+.row-me {
+    background-color: rgba(0, 82, 204, 0.05); /* Kendin olduğunu belli eden renk */
+}
+
+.text-me {
+    font-weight: bold;
+    color: #0052cc;
+}
+
+.badge-me {
+    margin-left: 5px;
+    font-size: 10px;
+    color: var(--text-secondary);
+    font-weight: normal;
+}
+
+/* --- ROLLER (Badge) --- */
+.role-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    margin-right: 5px;
+    color: #1e1e2e; /* Yazı rengi koyu */
+}
+
+.role-admin { background-color: #fab387; } /* Turuncu tonu */
+.role-user { background-color: #89b4fa; }  /* Mavi tonu */
+
+/* --- İŞLEM BUTONLARI --- */
+.btn-delete-user {
+    background: transparent;
+    color: #ff5252;
+    border: 1px solid #ff5252;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.btn-delete-user:hover {
+    background: #ff5252;
+    color: white;
+}
+
+.icon-shield {
+    font-size: 20px;
+    cursor: help;
+}

@@ -1,31 +1,21 @@
-import axios from "axios";
+import api from "./api"; // <--- Axios yerine kendi api'mizi çağırdık
 
-const API_URL = "http://localhost:8080/api/projects";
-
-const authHeader = () => {
-    const token = localStorage.getItem("token");
-    if (token) {
-        return { Authorization: "Bearer " + token };
-    } else {
-        return {};
-    }
-};
+const PROJECT_URL = "/projects"; // BaseURL zaten api.js içinde var
 
 const getAllProjects = () => {
-    return axios.get(API_URL, { headers: authHeader() });
+    return api.get(PROJECT_URL);
 };
 
 const getProjectById = (id) => {
-    return axios.get(API_URL + "/" + id, { headers: authHeader() });
+    return api.get(PROJECT_URL + "/" + id);
 };
-// ------------------------------------
 
 const createProject = (projectData) => {
-    return axios.post(API_URL, projectData, { headers: authHeader() });
+    return api.post(PROJECT_URL, projectData);
 };
 
 const deleteProject = (id) => {
-    return axios.delete(API_URL + "/" + id, { headers: authHeader() });
+    return api.delete(PROJECT_URL + "/" + id);
 };
 
 const ProjectService = {
