@@ -1,1 +1,0 @@
-ALTER TABLE tickets ADD COLUMN priority VARCHAR(255);

@@ -1,8 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import ProjectDashboard from "./components/ProjectDashboard.jsx";
+import ProjectBoard from "./components/ProjectBoard.jsx"; // <-- YENİ EKLENDİ
 import Login from "./Login.jsx";
 import Register from "./Register.jsx";
-import TicketList from "./TicketList.jsx";
-import AdminPanel from "./AdminPanel"; // Admin paneli importu
+import AdminPanel from "./AdminPanel";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -22,16 +23,26 @@ function App() {
                 theme="colored"
             />
             <Routes>
-                {/* Giriş Sayfası */}
+                {/* Giriş ve Kayıt */}
                 <Route path="/" element={<Login />} />
                 <Route path="/register" element={<Register />} />
 
-                {/* Ticket Listesi Sayfası */}
-                <Route path="/tickets" element={<TicketList />} />
 
-                {/* Admin Paneli Sayfası - HATA BURADAYDI, DÜZELDİ */}
+
+                {/* Admin Paneli */}
                 <Route path="/admin" element={<AdminPanel />} />
 
+                {/* --- PROJE ROTALARI --- */}
+
+                {/* 1. Proje Listesi (Dashboard) */}
+                <Route path="/projects" element={<ProjectDashboard />} />
+
+                {/* 2. Proje Detay (Board) - YENİ */}
+                {/* :id kısmı dinamiktir (örn: /project/5) */}
+                {/* Artık adresin sonunda /tickets de olacak */}
+                <Route path="/project/:id/tickets" element={<ProjectBoard />} />
+
+                {/* --- EN SONDA OLACAK --- */}
                 {/* Bilinmeyen bir yere giderse Login'e at */}
                 <Route path="*" element={<Navigate to="/" />} />
             </Routes>

@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from 'react-toastify';
-import { useNavigate } from "react-router-dom";
 import './App.css';
+import { useNavigate, useLocation } from "react-router-dom";
 
 function AdminPanel() {
     const [users, setUsers] = useState([]);
     const [currentUser, setCurrentUser] = useState(null); // <-- BEN KİMİM?
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [darkMode, setDarkMode] = useState(() => {
         return localStorage.getItem("theme") === "dark";
@@ -58,7 +59,7 @@ function AdminPanel() {
         } catch (error) {
             console.error("Kullanıcılar çekilemedi", error);
             toast.error("Yetkisiz Giriş!");
-            navigate("/tickets");
+            navigate("/projects");
         }
     };
 
@@ -108,7 +109,16 @@ function AdminPanel() {
                         </button>
 
                         <button
-                            onClick={() => navigate("/tickets")}
+                            onClick={() => {
+                                // EĞER cebinde bir proje ID'si ile geldiyse oraya dön
+                                if (location.state && location.state.projectId) {
+                                    navigate("/project/" + location.state.projectId + "/tickets");
+                                }
+                                // Yoksa ana proje listesine dön
+                                else {
+                                    navigate("/projects");
+                                }
+                            }}
                             style={{
                                 padding:'8px 16px',
                                 background:'var(--bg-card)',

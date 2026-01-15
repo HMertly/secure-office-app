@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
+    // 1. Kullanıcının dahil olduğu ticketlar
     @Query("""
     select t from Ticket t
     where lower(t.createdBy.email) = lower(:email)
@@ -15,4 +16,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     order by t.createdAt desc
   """)
     List<Ticket> findVisibleForUserEmail(@Param("email") String email);
+
+    // 2. YENİ: Bir Projeye ait ticketları getir
+    List<Ticket> findByProjectId(Long projectId);
 }

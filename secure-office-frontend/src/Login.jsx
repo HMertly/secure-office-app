@@ -30,7 +30,7 @@ function Login() {
             if (token) {
                 localStorage.setItem("token", token);
                 console.log("TOKEN BAŞARIYLA KAYDEDİLDİ:", token);
-                window.location.href = "/tickets";
+                window.location.href = "/projects";
             } else {
                 alert("Giriş başarılı ama Token bulunamadı! Konsola bak.");
             }
