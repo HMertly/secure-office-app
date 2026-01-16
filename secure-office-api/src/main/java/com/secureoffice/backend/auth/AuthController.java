@@ -1,11 +1,17 @@
 package com.secureoffice.backend.auth;
 
+import com.secureoffice.backend.dto.request.AuthRequest;
+import com.secureoffice.backend.dto.request.RegisterRequest;
+import com.secureoffice.backend.dto.response.AuthResponse;
+import com.secureoffice.backend.dto.response.User_Response;
 import com.secureoffice.backend.users.User;
 import com.secureoffice.backend.users.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -20,9 +26,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    // DÜZELTME: Dönüş tipi ResponseEntity<AuthResponse> yapıldı
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest req) {
-        // DÜZELTME: Service'den gelen yanıtı (Token'ı) return ediyoruz.
         return ResponseEntity.ok(authService.register(req));
     }
 
@@ -31,10 +35,24 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(req));
     }
 
+    // GÜVENLİK GÜNCELLEMESİ: Artık User entity değil, UserResponse dönüyoruz.
     @GetMapping("/me")
-    public ResponseEntity<User> getMe(Authentication authentication) {
+    public ResponseEntity<User_Response> getMe(Authentication authentication) {
         User user = userRepository.findByEmailIgnoreCase(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return ResponseEntity.ok(user);
+
+        // Entity -> DTO Dönüşümü (Mapper)
+        User_Response response = new User_Response();
+        response.setId(user.getId());
+        response.setEmail(user.getEmail());
+        response.setFirstName(user.getFirstName());
+        response.setLastName(user.getLastName());
+
+        // Rolleri String listesine çevir
+        response.setRoles(user.getRoles().stream()
+                .map(role -> role.getName())
+                .collect(Collectors.toSet()));
+
+        return ResponseEntity.ok(response);
     }
 }

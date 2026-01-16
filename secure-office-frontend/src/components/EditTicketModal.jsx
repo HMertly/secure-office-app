@@ -1,13 +1,69 @@
-import React from 'react';
-import { PRIORITY, PRIORITY_LABELS } from "../utils/constants"; // <--- SABİTLER EKLENDİ
+import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
+import api from "../services/api"; // Merkezi API yapımızı kullanıyoruz
+import { PRIORITY, PRIORITY_LABELS } from "../utils/constants";
 import './ProjectBoard.css';
 
-const EditTicketModal = ({
-                             editingTicket, setEditingTicket, users, handleUpdateTicket,
-                             comments, newComment, setNewComment, handleAddComment
-                         }) => {
+const EditTicketModal = ({ editingTicket, setEditingTicket, users, onUpdateSuccess }) => {
 
-    if (!editingTicket) return null;
+    // State Yönetimi artık Modalin içinde (Encapsulation)
+    const [currentTicket, setCurrentTicket] = useState(null);
+    const [comments, setComments] = useState([]);
+    const [newComment, setNewComment] = useState("");
+
+    // Modal açıldığında verileri senkronize et
+    useEffect(() => {
+        if (editingTicket) {
+            setCurrentTicket({ ...editingTicket }); // Props'u local state'e kopyala
+            fetchComments(editingTicket.id);
+        }
+    }, [editingTicket]);
+
+    // API: Yorumları Çek
+    const fetchComments = async (ticketId) => {
+        try {
+            const res = await api.get(`/tickets/${ticketId}/comments`);
+            setComments(res.data || []); // Data yoksa boş dizi ata
+        } catch (err) {
+            console.error("Yorum hatası:", err);
+            setComments([]);
+        }
+    };
+
+    // API: Yorum Ekle
+    const handleAddComment = async () => {
+        if (!newComment.trim()) return;
+        try {
+            await api.post(`/tickets/${currentTicket.id}/comments`, { text: newComment });
+            setNewComment("");
+            fetchComments(currentTicket.id); // Listeyi tazele
+            toast.success("Yorum eklendi! 💬");
+        } catch (err) {
+            toast.error("Yorum eklenemedi.");
+        }
+    };
+
+    // API: Görevi Güncelle (Kaydet)
+    const handleSave = async () => {
+        try {
+            await api.put(`/tickets/${currentTicket.id}`, {
+                title: currentTicket.title,
+                description: currentTicket.description,
+                priority: currentTicket.priority,
+                assignedToUserId: currentTicket.assignedTo ? currentTicket.assignedTo.id : null
+            });
+
+            toast.success("Güncellendi! ✅");
+            if (onUpdateSuccess) onUpdateSuccess(); // Ana sayfayı (Board) yenile
+            setEditingTicket(null); // Modalı kapat
+        } catch (error) {
+            console.error(error);
+            toast.error("Güncelleme başarısız!");
+        }
+    };
+
+    // Eğer kapalıysa veya veri yüklenmediyse gösterme
+    if (!editingTicket || !currentTicket) return null;
 
     return (
         <div className="modal-overlay" onClick={() => setEditingTicket(null)}>
@@ -22,8 +78,8 @@ const EditTicketModal = ({
                         <label className="modal-label">Başlık</label>
                         <input
                             type="text"
-                            value={editingTicket.title}
-                            onChange={e => setEditingTicket({...editingTicket, title: e.target.value})}
+                            value={currentTicket.title}
+                            onChange={e => setCurrentTicket({...currentTicket, title: e.target.value})}
                             className="form-input"
                             placeholder="Görev başlığı..."
                         />
@@ -33,24 +89,21 @@ const EditTicketModal = ({
                         <label className="modal-label">Açıklama</label>
                         <textarea
                             rows="4"
-                            value={editingTicket.description || ""}
-                            onChange={e => setEditingTicket({...editingTicket, description: e.target.value})}
+                            value={currentTicket.description || ""}
+                            onChange={e => setCurrentTicket({...currentTicket, description: e.target.value})}
                             className="form-input"
                             placeholder="Detaylı açıklama ekle..."
-                            // style prop'una gerek kalmadı, CSS hallediyor (resize: none)
                         />
                     </div>
 
-                    {/* Yan Yana Grid Yapısı */}
                     <div className="modal-row">
                         <div className="form-group">
                             <label className="modal-label">Öncelik</label>
                             <select
-                                value={editingTicket.priority}
-                                onChange={e => setEditingTicket({...editingTicket, priority: e.target.value})}
+                                value={currentTicket.priority}
+                                onChange={e => setCurrentTicket({...currentTicket, priority: e.target.value})}
                                 className="form-select"
                             >
-                                {/* Sabitlerden okuma */}
                                 <option value={PRIORITY.LOW}>{PRIORITY_LABELS[PRIORITY.LOW]}</option>
                                 <option value={PRIORITY.MEDIUM}>{PRIORITY_LABELS[PRIORITY.MEDIUM]}</option>
                                 <option value={PRIORITY.HIGH}>{PRIORITY_LABELS[PRIORITY.HIGH]}</option>
@@ -59,11 +112,11 @@ const EditTicketModal = ({
                         <div className="form-group">
                             <label className="modal-label">Atanan Kişi</label>
                             <select
-                                value={editingTicket.assignedTo ? editingTicket.assignedTo.id : ""}
+                                value={currentTicket.assignedTo ? currentTicket.assignedTo.id : ""}
                                 onChange={e => {
                                     const userId = Number(e.target.value);
                                     const userObj = users.find(u => u.id === userId);
-                                    setEditingTicket({...editingTicket, assignedTo: userObj || null});
+                                    setCurrentTicket({...currentTicket, assignedTo: userObj || null});
                                 }}
                                 className="form-select"
                             >
@@ -85,7 +138,7 @@ const EditTicketModal = ({
                             comments.map(c => (
                                 <div key={c.id} className="comment-bubble">
                                     <div className="comment-header">
-                                        <span>{c.createdBy.firstName} {c.createdBy.lastName}</span>
+                                        <span>{c.createdBy ? `${c.createdBy.firstName} ${c.createdBy.lastName}` : 'Bilinmeyen'}</span>
                                         <span>{new Date(c.createdAt).toLocaleString('tr-TR')}</span>
                                     </div>
                                     <div className="comment-body">{c.text}</div>
@@ -110,8 +163,8 @@ const EditTicketModal = ({
 
                 {/* Footer Butonları */}
                 <div className="modal-footer">
-                    <button onClick={() => setEditingTicket(null)} className="btn-secondary">Kapat</button>
-                    <button onClick={handleUpdateTicket} className="btn-primary" style={{backgroundColor: '#36b37e'}}>Kaydet</button>
+                    <button onClick={() => setEditingTicket(null)} className="btn-secondary">İptal</button>
+                    <button onClick={handleSave} className="btn-primary" style={{backgroundColor: '#36b37e'}}>Kaydet</button>
                 </div>
             </div>
         </div>

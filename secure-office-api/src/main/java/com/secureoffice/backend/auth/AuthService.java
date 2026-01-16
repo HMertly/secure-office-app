@@ -1,5 +1,8 @@
 package com.secureoffice.backend.auth;
 
+import com.secureoffice.backend.dto.request.AuthRequest;
+import com.secureoffice.backend.dto.request.RegisterRequest;
+import com.secureoffice.backend.dto.response.AuthResponse;
 import com.secureoffice.backend.security.JwtService;
 import com.secureoffice.backend.users.Role;
 import com.secureoffice.backend.users.RoleRepository;

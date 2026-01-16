@@ -85,8 +85,8 @@ const ProjectDashboard = () => {
         );
     };
 
-    // CLEAN CODE: Sihirli string yerine sabit kullanımı
-    const isAdmin = currentUser && currentUser.roles && currentUser.roles.some(r => r.name === ROLES.ADMIN);
+// YENİ KOD (Backend DTO yapısına uygun: roles artık string dizisi)
+    const isAdmin = currentUser && currentUser.roles && currentUser.roles.includes(ROLES.ADMIN);
 
     if (loading && !projects.length) return <div style={{textAlign:'center', marginTop:'50px'}}>Yükleniyor...</div>;
 
